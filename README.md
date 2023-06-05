@@ -6,7 +6,7 @@ a program you can build on your server
 
 ## how to bulid?
 
-run these code on cmd
+run these codes on cmd
 ```cmd
 pip install gpt4free
 pip install openai
