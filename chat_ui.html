@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Interface</title>
+    <style>
+        /* 样式可以根据需要进行修改 */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 66%;
+            margin: 0 auto;
+            display: flex;
+        }
+
+        .chat-history {
+            height: 600px;
+            overflow-y: scroll;
+            border: 1px solid #ccc;
+            padding: 10px;
+            flex: 2;
+        }
+
+        .user-message {
+            margin-bottom: 10px;
+        }
+
+        .btn-container {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+
+        .btn {
+            display: block;
+            margin-bottom: 12px;
+            padding: 10px 20px;
+            padding-left: 10px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="chat-history" id="chat-history"></div>
+        <div class="btn-container">
+            <button class="btn" id="Download-button">Download</button>
+            <button class="btn" id="Upload-button">Upload</button>
+            <button class="btn" id="Clear-button">Clear</button>
+        </div>
+    </div>
+    <div style="display: flex; flex-direction: row;padding-left: 300px;padding-top: 20px">
+        <input type="text" id="message-input" placeholder="Type your message..." size="80px">
+        <button class="btn" id="send-button">Send message</button>
+    </div>
+
+    <script>
+        /* 获取发送按钮点击事件*/
+        var msg_history="{"
+        document.getElementById('send-button').addEventListener('click', function (event) {
+            event.preventDefault();
+            var message = document.getElementById('message-input').value;
+            var chatHistory = document.getElementById('chat-history');
+
+            /* 将用户输入的消息添加到聊天历史记录中*/
+            var userMessage = document.createElement('div');
+            userMessage.classList.add('user-message');
+            userMessage.textContent = "user:" + message;
+            chatHistory.appendChild(userMessage);
+
+            msg_history = msg_history + " \"user\":  \""+message+"\""
+
+            /*向服务器发送一个请求*/
+            const url = "http://localhost:1181";
+            var data = {
+                role: "user",
+                msg: message
+            }
+
+
+            fetch(url,
+                {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'text/plain'
+                },
+                body: msg_history + "}\0"
+                })
+                .then(response => response.text())
+                .then(text => {
+                    console.log("respoens get")
+                    console.log("Response from server:", text);
+
+                    message =  text;
+                    userMessage = document.createElement('div');
+                    userMessage.classList.add('user-message');
+                    userMessage.textContent = "assistant:" + message;
+                    chatHistory.appendChild(userMessage);
+
+                    message= message.substr(0, message.length - 2)
+                    msg_history = msg_history + ", \"assistant\":\"" + message + "\","
+                    // 在这里处理来自服务器的文本响应
+                })
+                .catch(error => {
+                    console.error("myError:" + error);
+                    // 在这里处理错误情况
+                });
+
+
+            /* 清空消息输入框*/
+            document.getElementById('message-input').value = '';
+
+            /* 滚动到最底部*/
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        });
+
+        // Download-button点击事件
+        document.getElementById('Download-button').addEventListener('click', function () {
+            // 处理Download-button的逻辑
+            var chatHistory = document.getElementById('chat-history');
+
+            // 在聊天历史记录中添加Download-button的消息
+            var button1Message = document.createElement('div');
+            button1Message.classList.add('user-message');
+            button1Message.textContent = 'Download';
+            chatHistory.appendChild(button1Message);
+
+            // 滚动到最底部
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        });
+
+        // Upload-button点击事件
+        document.getElementById('Upload-button').addEventListener('click', function () {
+            // 处理Upload-button的逻辑
+            var chatHistory = document.getElementById('chat-history');
+
+            // 在聊天历史记录中添加Upload-button的消息
+            var button2Message = document.createElement('div');
+            button2Message.classList.add('user-message');
+            button2Message.textContent = 'Upload';
+            chatHistory.appendChild(button2Message);
+
+            // 滚动到最底部
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        });
+
+        // Clear-button点击事件
+        document.getElementById('Clear-button').addEventListener('click', function () {
+            // 处理unregistered-button的逻辑
+            var chatHistory = document.getElementById('chat-history');
+
+            // 在聊天历史记录中添加Clear-button的消息
+            var unregisteredButtonMessage = document.createElement('div');
+            unregisteredButtonMessage.classList.add('Clear-button');
+            msg_history = "{"
+
+            while (chatHistory.firstChild) {
+                chatHistory.removeChild(chatHistory.firstChild);
+            }
+
+            unregisteredButtonMessage.textContent = 'Clear';
+            chatHistory.appendChild(unregisteredButtonMessage);
+
+            // 滚动到最底部
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        });
+    </script>
+</body>
+</html>
